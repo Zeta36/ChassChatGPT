@@ -2,7 +2,7 @@ import chess
 import random
 import openai
 
-openai.api_key = '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'
+openai.api_key = 'sk-xxxxxx'
 
 def imprimir_tablero(tablero):
     letras = '  a b c d e f g h'
