@@ -2,7 +2,7 @@ import chess
 import random
 import openai
 
-openai.api_key = 'sk-xxxxxx'
+openai.api_key = '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'
 
 def imprimir_tablero(tablero):
     letras = '  a b c d e f g h'
@@ -14,13 +14,13 @@ def imprimir_tablero(tablero):
 
 def obtener_movimiento_gpt(tablero):
     movimientos = " ".join([str(mov) for mov in tablero.move_stack])
-    movimientos_legales = ", ".join([str(m) for m in tablero.legal_moves])
+    movimientos_legales = ", ".join([tablero.san(m) for m in tablero.legal_moves])
     color_jugador = "blancas" if tablero.turn == chess.WHITE else "negras"
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": f"Eres un asistente de ajedrez jugando como las {color_jugador}. Analiza el estado actual del juego y detecta los peligros y amenzadas de tus piezas, da una breve descripción sobre el estado del juego en general y analiza lo bueno y malo de cada uno de tus movimientos posibles, finalmente proporciona tu probabilidad de ganar o perder la partida, y sugiere tu siguiente movimiento. Por favor, proporciona el movimiento sugerido en una nueva línea al final de tu mensaje en formato UCI (por ejemplo, 'e2e4'). Por ejemplo, si el estado actual del juego es '1.e4 e5 2.Cf3 Cc6 3.Ab5 a6', podrías responder con 'Las blancas tienen una ligera ventaja debido a un mejor control del centro. La probabilidad de ganar para las blancas es del 60%. Movimiento sugerido: e1g1'."},
-            {"role": "user", "content": f"El estado actual del tablero es: {movimientos}. Los posibles movimientos legales son: {movimientos_legales}. Analiza el estado actual del juego y detecta los peligros y amenzadas de tus piezas, da una breve descripción sobre el estado del juego en general y analiza lo bueno y malo de cada uno de tus movimientos posibles, finalmente proporciona tu probabilidad de ganar o perder la partida, y sugiere tu siguiente movimiento de acuerdo a tu estudio. Recuerda el formato del movimiento sugerido, como: e1g1, no uses el número de movimiento ni puntos: no es útil, por ejemplo, '1...c7c5', tampoco: `d7d6` o 'd7d6' (no uses comillas), solo queremos el movimiento. Solamente: c7c5 es necesario."}
+            {"role": "system", "content": f"Eres un asistente de ajedrez jugando como las {color_jugador}. Analiza el estado actual del juego da una breve descripción sobre el estado del juego en general, analiza cada uno de tus movimientos posibles así como la posible respuesta de tu rival. Para seleccionar tu siguiente movimiento pon especial cuidado en no perder piezas tras el próximo movimiento de tu rival. Cuenta siempre el valor de tus piezas actuales, así como el valor de tus piezas tras tu movimiento y el valor de tus piezas tras la posible respuesta del rival. Por favor, proporciona el movimiento sugerido en una nueva línea al final de tu mensaje en formato SAN (por ejemplo, 'd6'). Por ejemplo, si el estado actual del juego es '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6', podrías responder con 'Las blancas tienen una ligera ventaja debido a un mejor control del centro. La probabilidad de ganar para las blancas es del 60%. Movimiento sugerido: d6"},
+            {"role": "user", "content": f"El estado actual del tablero es: {movimientos}. Los posibles movimientos legales son: {movimientos_legales}. Analiza el estado actual del juego da una breve descripción sobre el estado del juego en general, analiza cada uno de tus movimientos posibles así como la posible respuesta de tu rival. Para seleccionar tu siguiente movimiento pon especial cuidado en no perder piezas tras el próximo movimiento de tu rival. Cuenta siempre el valor de tus piezas actuales, así como el valor de tus piezas tras tu movimiento y el valor de tus piezas tras la posible respuesta del rival. Recuerda el formato del movimiento sugerido, como: Nc6, no uses el número de movimiento ni puntos: no es útil, por ejemplo, '1...Nc6', tampoco: `Nc6` ni 'Nc6' ni Nc6. (no uses comillas ni puntos), solo queremos el movimiento. Solamente: Nc6"}
         ]
     )
     respuesta = response.choices[0].message["content"].strip()
@@ -46,9 +46,9 @@ def jugar_ajedrez():
             except:
                 print("Movimiento no válido. Intenta de nuevo.")
         else:
-            movimiento = obtener_movimiento_gpt(tablero)
-            if chess.Move.from_uci(movimiento) in tablero.legal_moves:
-                tablero.push(chess.Move.from_uci(movimiento))
+            movimiento = tablero.parse_san(obtener_movimiento_gpt(tablero))
+            if movimiento in tablero.legal_moves:
+                tablero.push(movimiento)
             else:
                 print("Movimiento sugerido por GPT es ilegal. Seleccionando un movimiento aleatorio.")
                 movimiento = random.choice([move for move in tablero.legal_moves])
