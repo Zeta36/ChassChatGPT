@@ -1,2 +1,2 @@
 # ChassChatGPT
-Chess ChatGPT is a Python program that allows you to play chess against a computer opponent using console input. The program integrates with OpenAI's ChatGPT model to provide intelligent moves and game analysis.
+Chess ChatGPT is a Python program that allows you to play chess against a computer opponent using console input. The program integrates with OpenAI's ChatGPT model to provide intelligent moves and game analysis. Choose your color, make your moves, and receive suggestions from the AI assistant. The program supports both random moves and AI-powered moves. Enhance your chess skills and enjoy playing the game with this interactive and educational chess assistant.
